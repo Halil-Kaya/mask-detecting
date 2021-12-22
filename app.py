@@ -14,4 +14,4 @@ def index():
         print(request.files['file'].filename)
         return render_template('index.html',result = request.files['file'])
 
-app.run(host='0.0.0.0', port=5000)
+app.run(host='0.0.0.0', port=3000)

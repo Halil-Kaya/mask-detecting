@@ -1,5 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+<style>
+
+body{
+    background-image: url("/renkli.jpeg");
+    
+}    
+.box{
+background-image: url("/orta.jpeg");
+background-repeat:round;
+height:75%;
+width: 50%;
+margin-left: 25%;
+border: 5px solid grey;
+border-radius: 10px;
+padding-top: 5%;
+  
+margin-top: 5%;
+
+
+}
+
+</style>
+
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,18 +35,22 @@
         const file = '{{ result }}';
       </script>
 </head>
-<body>
-    
-    <form action="/" method="POST" enctype="multipart/form-data"> 
-        Key filename: <input name="file" type="file"> 
-        <input name="submit" type="submit"> 
-    </form> 
+<body style="height: 900px;">
+    <div class="box">
+
+
+        <form action="/" method="POST" enctype="multipart/form-data"> 
+            <div style="margin-top: 70%; " class="input-group">
+                <input type="file" class="form-control" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+                <button class="btn btn-outline-secondary" name="submit" type="submit">Submit</button>
+              </div>
+           
+            
+        </form>         
+    </div>
+
 </body>
 </html>
 
 <script>
-    console.log(file)
-    console.log(typeof file)
-    console.log(file.name)
-    console.log(file.value)
 </script>
