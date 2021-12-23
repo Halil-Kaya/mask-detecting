@@ -10,7 +10,6 @@ app = Flask(__name__)
 @app.route('/',methods = ['GET','POST'])
 def index():
     if(request.method == 'GET'):
-        print("GET istegi calisti!")
         return render_template('index.html',result = '')
 
 
@@ -24,16 +23,10 @@ def find():
         image = np.expand_dims(img, axis=0)
         result = loaded_model.predict(image)
         print(result[0])
-        print(result[0][0])
-        resultString = "maskeli olma olasiligi : " + str(result[0][0]) + " maskeli olmama olasiligi : " + str(result[0][1]) + " maske hatali olma olasiligi : " + str(result[0][2])
-        return resultString
-
-@app.route('/test',methods = ['POST'])
-def test():
-    if(request.method == 'POST'):
-        file = request.files['file']
-        return send_file('result', mimetype='image/gif')
-
+        resultString = "maskesiz olma olasiligi : " + str(result[0][0]) + " maskeli olmama olasiligi : " + str(result[0][1]) + " maske hatali olma olasiligi : " + str(result[0][2])
+        response = {}
+        response['result'] = resultString
+        return response
 
 
 app.run(host='0.0.0.0', port=3000)
