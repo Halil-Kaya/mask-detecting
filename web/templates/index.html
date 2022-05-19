@@ -8,7 +8,7 @@
 
 <body>
     <script class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
     <div class="bbox">
 
@@ -23,17 +23,10 @@
                 <button class="file-upload-btn" type="button" onclick="$('.file-upload-input').trigger( 'click' )">Resim
                     Seç</button>
                 <button class="file-upload-btn"> <a class="file-upload-btn" style="text-decoration: none;"
-                        href="./video">Video Seç</a> </button>
-                <button class="file-upload-btn" type="button" onclick='myFunction("block","true")'>Kamera Aç</button>
-                <div id="panel" style="display:none;">
-                    <div id="container">
-                        <video autoplay="false" id="videoElement">
-
-                        </video>
-                        <button style="margin-top: 150px ;" class="file-upload-btn"
-                            onclick='myFunction("none","false")'>Kamerayı Kapat</button>
-                    </div>
-                </div>
+                        href="./video-page">Video Seç</a> </button>
+                <button class="file-upload-btn" type="button">
+                    <a class="file-upload-btn" style="text-decoration: none;" href="./video_feed">Kamera Aç</a>
+                </button>
 
                 <div class="file-upload-placeholder">
                     <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
@@ -53,8 +46,10 @@
                     </div>
 
                     <div style="display: none; border-radius: 5px; width:60% ; margin-right: 20%; margin-left: 20%; height:250px ; border: 3px solid green;"
-                        class="sonucimg" id="sonucimg">
-
+                        id="image-box">
+                        <img src="#" id="resultImg"
+                            style="border-radius: 5px; width:60% ; margin-right: 20%; margin-left: 20%; height:250px ;"
+                            alt="result image">
                     </div>
 
                 </div>

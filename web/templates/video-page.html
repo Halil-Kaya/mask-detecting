@@ -35,7 +35,7 @@
             var reader = new FileReader();
 
             reader.onload = function (e) {
-                console.log('loaded')
+                console.log("e.target.result -> ", e.target.result)
                 videoSrc.src = e.target.result
                 videoTag.load()
             }.bind(this)
