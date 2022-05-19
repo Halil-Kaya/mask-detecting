@@ -1,1 +1,1 @@
-# basic-flusk-app
+# mask detecting project
