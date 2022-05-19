@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="./style.css">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button width="20%" class="file-upload-btn"> <a class="file-upload-btn" style="text-decoration: none;"> <input
+                class="file-upload-input" type="file" accept="video/*" id="input-tag" /> Video Seç</a> </button>
+
+    <hr>
+    <video style="margin-left: 20%;" width="60%" height="400px" controls id="video-tag">
+        <source id="video-source" src="splashVideo">
+        Your browser does not support the video tag.
+    </video>
+</body>
+
+
+<script>
+
+    const videoSrc = document.querySelector("#video-source");
+    const videoTag = document.querySelector("#video-tag");
+    const inputTag = document.querySelector("#input-tag");
+
+    inputTag.addEventListener('change', readVideo)
+
+    function readVideo(event) {
+        console.log(event.target.files)
+        if (event.target.files && event.target.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                console.log('loaded')
+                videoSrc.src = e.target.result
+                videoTag.load()
+            }.bind(this)
+
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    }
+</script>
+
+</html>
