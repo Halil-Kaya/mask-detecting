@@ -4,6 +4,11 @@ from PIL import Image
 import io
 import cv2
 import numpy as np
+import pickle
+
+loaded_model = pickle.load(open("finalized_model.sav", 'rb'))
+
+mask_types = ["un-mask","mask","improper-mask"]
 
 app = Flask(__name__,
             static_url_path='', 
@@ -29,7 +34,15 @@ def procImage():
         img = convertBase64ToImage(imageString)
         img = np.array(img)
         #todo: put the img to ml model
+        img = cv2.resize(img,(256,256))
+        mask_model_input = np.expand_dims(img,axis = 0)
 
+        resultImage = loaded_model.predict(mask_model_input)
+        chosen = np.argmax(resultImage)
+        class_name = mask_types[chosen]
+        label = str(class_name)
+        cv2.putText(img,label,(x,y-5),cv2.FONT_HERSHEY_COMPLEX,0.5,(0,0,255),1)
+         
         retval, buffer = cv2.imencode('.jpg', img)
         jpg_as_text = base64.b64encode(buffer)
         return jpg_as_text
@@ -37,15 +50,19 @@ def procImage():
 @app.route('/proc-video',methods = ['POST'])
 def procVideo():
     if(request.method == 'POST'):
-        videoString = request.get_json(force=True)['videoString']
-        video = convertBase64ToVideo(videoString)
-        #img = np.array(img)
-        return "test"
+        video = request.files['video']
+        result = video.read()
+        print(result)
+        #npVideo = np.fromfile(video,np.uint8)
+        #print(npVideo)
+        return "resultString"
 
 def gen(video):
     while True:
         success, image = video.read()
         #todo: put the img to ml model
+
+
 
         ret, jpeg = cv2.imencode('.jpg', image)
         frame = jpeg.tobytes()
@@ -59,14 +76,7 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def convertVideoToBase64(video):
-    pass
-
-def convertBase64ToVideo(base64Code):
-    videoString = base64Code.split(',')[1]
-    return io.BytesIO(base64.b64decode(bytes(videoString, "utf-8")))
-
-def convertImageToBase64(image):
-    encoded_string = base64.b64encode(image.read())
+    encoded_string = base64.b64encode(video.read())
     return encoded_string
 
 def convertBase64ToImage(base64Code):
@@ -74,4 +84,4 @@ def convertBase64ToImage(base64Code):
     return Image.open(io.BytesIO(base64.b64decode(bytes(imageString, "utf-8"))))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=3000, threaded=True)
+    app.run(host='0.0.0.0', port=3000, threaded=True,debug=True)

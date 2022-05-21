@@ -6,10 +6,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <title>Document</title>
 </head>
 
 <body>
+
     <button width="20%" class="file-upload-btn"> <a class="file-upload-btn" style="text-decoration: none;"> <input
                 class="file-upload-input" type="file" accept="video/*" id="input-tag" /> Video Seç</a> </button>
 
@@ -29,14 +32,19 @@
 
     inputTag.addEventListener('change', readVideo)
 
-    function readVideo(event) {
-        console.log(event.target.files)
+    async function readVideo(event) {
+        let formData = new FormData();
+        formData.append("video", event.target.files[0]);
+        const result = await axios.post('/proc-video',formData,{
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });  
+        console.log("-> ",result.data)
         if (event.target.files && event.target.files[0]) {
             var reader = new FileReader();
-
             reader.onload = function (e) {
-                console.log("e.target.result -> ", e.target.result)
-                videoSrc.src = e.target.result
+                videoSrc.src = result.data
                 videoTag.load()
             }.bind(this)
 
