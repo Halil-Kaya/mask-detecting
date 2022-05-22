@@ -4,18 +4,17 @@ from PIL import Image
 import io
 import cv2
 import numpy as np
-import pickle
+import tensorflow as tf
+from tensorflow import keras
+import os
 
-loaded_model = pickle.load(open("finalized_model.sav", 'rb'))
-
+loaded_model = keras.models.load_model("iv3_mask-model.h5")
 mask_types = ["un-mask","mask","improper-mask"]
 
 app = Flask(__name__,
             static_url_path='', 
             static_folder='web/static',
             template_folder='web/templates')
-
-video = cv2.VideoCapture(0)
 
 @app.route('/',methods = ['GET','POST'])
 def index():
@@ -31,9 +30,11 @@ def videoPage():
 def procImage():
     if(request.method == 'POST'):
         imageString = request.get_json(force=True)['imageString']
-        img = convertBase64ToImage(imageString)
-        img = np.array(img)
-        #todo: put the img to ml model
+        orginalImage = convertBase64ToImage(imageString)
+        orginalImage = np.array(orginalImage)
+        img = np.array(orginalImage)
+
+        height, width, channels = img.shape
         img = cv2.resize(img,(256,256))
         mask_model_input = np.expand_dims(img,axis = 0)
 
@@ -41,9 +42,11 @@ def procImage():
         chosen = np.argmax(resultImage)
         class_name = mask_types[chosen]
         label = str(class_name)
-        cv2.putText(img,label,(x,y-5),cv2.FONT_HERSHEY_COMPLEX,0.5,(0,0,255),1)
-         
-        retval, buffer = cv2.imencode('.jpg', img)
+
+        orginalImage = cv2.cvtColor(orginalImage, cv2.COLOR_BGR2RGB)
+        cv2.putText(orginalImage,label,(0,10),cv2.FONT_HERSHEY_COMPLEX,0.5,(0,0,255),1)
+        
+        retval, buffer = cv2.imencode('.jpg', orginalImage)
         jpg_as_text = base64.b64encode(buffer)
         return jpg_as_text
 
@@ -51,18 +54,16 @@ def procImage():
 def procVideo():
     if(request.method == 'POST'):
         video = request.files['video']
-        result = video.read()
-        print(result)
-        #npVideo = np.fromfile(video,np.uint8)
-        #print(npVideo)
+        video_path = video.filename
+        video.save(os.path.join('', video_path))
+        cap = cv2.VideoCapture(video_path)
+        #TODO put in to model
         return "resultString"
 
 def gen(video):
     while True:
         success, image = video.read()
         #todo: put the img to ml model
-
-
 
         ret, jpeg = cv2.imencode('.jpg', image)
         frame = jpeg.tobytes()
