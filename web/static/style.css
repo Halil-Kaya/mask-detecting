@@ -112,10 +112,8 @@ padding: 60px 0;
 
 /* PREVIEW */
 .file-upload-image {
-max-height: 200px;
-max-width: 200px;
-margin: auto;
-padding: 20px;
+max-height: 250px;
+max-width: 250px;
 }
 /* REMOVE */
 .file-upload-remove {
