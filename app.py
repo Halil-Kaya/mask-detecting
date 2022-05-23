@@ -8,6 +8,9 @@ import tensorflow as tf
 from tensorflow import keras
 import os
 
+CONFIDENCE_THRESHOLD = 0.4
+NMS_THRESHOLD = 0.4
+
 loaded_model = keras.models.load_model("iv3_mask-model.h5")
 mask_types = ["un-mask","mask","improper-mask"]
 
@@ -32,21 +35,10 @@ def procImage():
         imageString = request.get_json(force=True)['imageString']
         orginalImage = convertBase64ToImage(imageString)
         orginalImage = np.array(orginalImage)
-        img = np.array(orginalImage)
-
-        height, width, channels = img.shape
-        img = cv2.resize(img,(256,256))
-        mask_model_input = np.expand_dims(img,axis = 0)
-
-        resultImage = loaded_model.predict(mask_model_input)
-        chosen = np.argmax(resultImage)
-        class_name = mask_types[chosen]
-        label = str(class_name)
-
-        orginalImage = cv2.cvtColor(orginalImage, cv2.COLOR_BGR2RGB)
-        cv2.putText(orginalImage,label,(0,10),cv2.FONT_HERSHEY_COMPLEX,0.5,(0,0,255),1)
-        
-        retval, buffer = cv2.imencode('.jpg', orginalImage)
+        net = getYoloModel()
+        img = run_yolo_frame(orginalImage,net,loaded_model)
+        img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+        retval, buffer = cv2.imencode('.jpg', img)
         jpg_as_text = base64.b64encode(buffer)
         return jpg_as_text
 
@@ -83,6 +75,93 @@ def convertVideoToBase64(video):
 def convertBase64ToImage(base64Code):
     imageString = base64Code.split(',')[1]
     return Image.open(io.BytesIO(base64.b64decode(bytes(imageString, "utf-8"))))
+
+def getYoloModel():
+    model_weights = "yolo/yolov4-obj_last.weights"
+    model_config = "yolo/yolov4-obj.cfg"
+    net = cv2.dnn.readNet(model_weights, model_config)
+    return net
+
+
+
+
+def run_yolo_frame(img,net,mask_model):
+    height, width, channels = img.shape
+    print("height :",height)
+    # blob from Image returns the input image after doing mean substraction, normalizing, and channels wrapping
+    blob = cv2.dnn.blobFromImage(img, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
+    # blob_result(blob,img)
+
+    net.setInput(blob)
+    output_layers_names = net.getUnconnectedOutLayersNames()  # to get the output layer names
+    layerOutputs = net.forward(output_layers_names)  # get output from this function
+
+    boxes = []
+    confidences = []
+    class_ids = []
+
+    for output in layerOutputs:
+        # second loop is to extract infromation from each output
+        for detection in output:
+            scores = detection[5:]
+            class_id = np.argmax(scores)
+            confidence = scores[class_id]
+
+            if confidence > CONFIDENCE_THRESHOLD:
+                print("%%%%")
+                print(confidence)
+                center_x = int(detection[0] * width)
+                center_y = int(detection[1] * height)
+                w = int(detection[2] * width)
+                h = int(detection[3] * height)
+
+                x = int(center_x - w / 2)
+                y = int(center_y - h / 2)
+
+                boxes.append([x, y, w, h])
+                confidences.append(float(confidence))
+                class_ids.append(class_id)
+
+    #print(len(boxes))
+    # Filter box used non maximum supressions
+    indexes = cv2.dnn.NMSBoxes(boxes, confidences, CONFIDENCE_THRESHOLD,
+                               NMS_THRESHOLD)  # remove redundant(unnecessary) boxes
+    #print(indexes.flatten())
+    font = cv2.FONT_HERSHEY_COMPLEX
+    colors = np.random.uniform(0, 255, size=(len(boxes), 3))
+    if len(indexes) > 0: # to prevent AttributeError: 'tuple' object has no attribute 'flatten'
+        for i in indexes.flatten():
+            x, y, w, h = boxes[i]
+
+            label = str(mask_types[class_ids[i]])
+            percent = confidences[i]*100
+            print(percent)
+            confidence = str(round(percent,2))
+            color = colors[i]
+            cv2.rectangle(img, (x, y), (x + w, y + h), color, 4)
+            crop_img = img[y:y + h, x:x + w]
+
+            try:
+                mask_model_input = cv2.resize(crop_img,(256,256))
+                mask_model_input = np.expand_dims(mask_model_input, axis=0)
+
+                result = mask_model.predict(mask_model_input)
+                print(result)
+                chosen = np.argmax(result)
+                print(chosen)
+                mask_confidence = str(round(result[0][chosen],3))
+                class_name = mask_types[np.argmax(result)]
+                label = str(class_name)
+                print("LABEL : "+label)
+                #label = "face %"
+                cv2.putText(img, label + " " + confidence, (x, y-5),
+                             font, fontScale=1, color=(255, 255, 255),
+                             thickness=2, lineType=cv2.LINE_AA)
+
+            except:
+                print("HATA")
+
+    return img
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000, threaded=True,debug=True)
