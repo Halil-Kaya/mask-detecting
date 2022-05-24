@@ -11,8 +11,12 @@ import os
 CONFIDENCE_THRESHOLD = 0.4
 NMS_THRESHOLD = 0.4
 
-loaded_model = keras.models.load_model("iv3_mask-model.h5")
+loaded_model = keras.models.load_model("yolo/iv3_mask-model.h5")
 mask_types = ["un-mask","mask","improper-mask"]
+model_weights = "yolo/yolov4-obj_last.weights"
+model_config = "yolo/yolov4-obj.cfg"
+net = cv2.dnn.readNet(model_weights, model_config)
+colors =  [(255,255,0),(0,255,255),(255,0,255)]
 
 app = Flask(__name__,
             static_url_path='', 
@@ -35,7 +39,7 @@ def procImage():
         imageString = request.get_json(force=True)['imageString']
         orginalImage = convertBase64ToImage(imageString)
         orginalImage = np.array(orginalImage)
-        net = getYoloModel()
+        
         img = run_yolo_frame(orginalImage,net,loaded_model)
         img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
         retval, buffer = cv2.imencode('.jpg', img)
@@ -49,8 +53,41 @@ def procVideo():
         video_path = video.filename
         video.save(os.path.join('', video_path))
         cap = cv2.VideoCapture(video_path)
-        #TODO put in to model
-        return "resultString"
+        if(cap.isOpened()==False):
+            print("Error openning video stream or file")
+        totalFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        
+        frame_width = int(cap.get(3))
+        frame_height = int(cap.get(4))
+
+        size = (frame_width, frame_height)
+
+        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+        out = cv2.VideoWriter('./web/static/output.avi', fourcc, 20.0, size)
+        
+        myFrameNumber = 10
+        # check for valid frame number
+        if myFrameNumber >= 0 & myFrameNumber <= totalFrames:
+            # set frame position
+            cap.set(cv2.CAP_PROP_POS_FRAMES,myFrameNumber)
+
+        while True:
+            success, frame = cap.read()
+            if success:
+                frame = cv2.resize(frame, size)
+                frame = run_yolo_frame(frame,net,loaded_model)
+                # write processed data
+                out.write(frame)
+                if cv2.waitKey(25) & 0xFF == ord('q'):
+                    break
+            else:
+                break
+        # After the loop release the cap object
+        
+        cap.release()
+        cv2.destroyAllWindows()
+        out.release()
+        return "OK"
 
 def gen(video):
     while True:
@@ -75,14 +112,6 @@ def convertVideoToBase64(video):
 def convertBase64ToImage(base64Code):
     imageString = base64Code.split(',')[1]
     return Image.open(io.BytesIO(base64.b64decode(bytes(imageString, "utf-8"))))
-
-def getYoloModel():
-    model_weights = "yolo/yolov4-obj_last.weights"
-    model_config = "yolo/yolov4-obj.cfg"
-    net = cv2.dnn.readNet(model_weights, model_config)
-    return net
-
-
 
 
 def run_yolo_frame(img,net,mask_model):
@@ -128,7 +157,6 @@ def run_yolo_frame(img,net,mask_model):
                                NMS_THRESHOLD)  # remove redundant(unnecessary) boxes
     #print(indexes.flatten())
     font = cv2.FONT_HERSHEY_COMPLEX
-    colors = np.random.uniform(0, 255, size=(len(boxes), 3))
     if len(indexes) > 0: # to prevent AttributeError: 'tuple' object has no attribute 'flatten'
         for i in indexes.flatten():
             x, y, w, h = boxes[i]
@@ -137,8 +165,6 @@ def run_yolo_frame(img,net,mask_model):
             percent = confidences[i]*100
             print(percent)
             confidence = str(round(percent,2))
-            color = colors[i]
-            cv2.rectangle(img, (x, y), (x + w, y + h), color, 4)
             crop_img = img[y:y + h, x:x + w]
 
             try:
@@ -148,13 +174,14 @@ def run_yolo_frame(img,net,mask_model):
                 result = mask_model.predict(mask_model_input)
                 print(result)
                 chosen = np.argmax(result)
-                print(chosen)
+                color = colors[chosen]
+                cv2.rectangle(img, (x, y), (x + w, y + h), color, 4)
                 mask_confidence = str(round(result[0][chosen],3))
                 class_name = mask_types[np.argmax(result)]
                 label = str(class_name)
                 print("LABEL : "+label)
                 #label = "face %"
-                cv2.putText(img, label + " " + confidence, (x, y-5),
+                cv2.putText(img, label + " " + mask_confidence, (x, y-5),
                              font, fontScale=1, color=(255, 255, 255),
                              thickness=2, lineType=cv2.LINE_AA)
 

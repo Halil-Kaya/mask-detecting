@@ -15,19 +15,12 @@
 
     <button width="20%" class="file-upload-btn"> <a class="file-upload-btn" style="text-decoration: none;"> <input
                 class="file-upload-input" type="file" accept="video/*" id="input-tag" /> Video Seç</a> </button>
-
     <hr>
-    <video style="margin-left: 20%;" width="60%" height="400px" controls id="video-tag">
-        <source id="video-source" src="splashVideo">
-        Your browser does not support the video tag.
-    </video>
 </body>
 
 
 <script>
 
-    const videoSrc = document.querySelector("#video-source");
-    const videoTag = document.querySelector("#video-tag");
     const inputTag = document.querySelector("#input-tag");
 
     inputTag.addEventListener('change', readVideo)
@@ -40,15 +33,8 @@
                 'Content-Type': 'multipart/form-data'
             }
         });  
-        console.log("-> ",result.data)
-        if (event.target.files && event.target.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                videoSrc.src = result.data
-                videoTag.load()
-            }.bind(this)
-
-            reader.readAsDataURL(event.target.files[0]);
+        if(result.data == "OK"){
+            window.location = "http://localhost:3000/output.avi"
         }
     }
 </script>
