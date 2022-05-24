@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 import os
+import time
 
 CONFIDENCE_THRESHOLD = 0.4
 NMS_THRESHOLD = 0.4
@@ -93,7 +94,7 @@ def run_yolo_frame(img,net,mask_model):
                 print("HATA")
 
     return img
-
+"""
 video_path = "Kumru.mp4"
 cap = cv2.VideoCapture(video_path)
 if(cap.isOpened()==False):
@@ -135,3 +136,54 @@ print("Video is finished")
 cap.release()
 cv2.destroyAllWindows()
 out.release()
+"""
+
+"""
+vid = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+frame_rate = 0.005
+prev = 0
+while (True):
+    stime = time.time() # start time
+    ctime = stime-prev # time elapse
+    print("TIME : ",ctime)
+    ret, frame = vid.read()
+    if frame is not None:
+        frame = cv2.flip(frame, 1)
+        if ctime > frame_rate:
+            frame = run_yolo_frame(frame,net,loaded_model)
+        prev = time.time()# change prev
+        cv2.imshow('frame', frame)
+    else:
+        print("There is no image")
+
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# After the loop release the cap object
+vid.release()
+# Destroy all the windows
+
+
+cv2.destroyAllWindows()
+"""
+import cv2
+
+cv2.namedWindow("preview")
+vc = cv2.VideoCapture(0)
+
+if vc.isOpened(): # try to get the first frame
+    rval, frame = vc.read()
+else:
+    rval = False
+
+while rval:
+    cv2.imshow("preview", frame)
+    rval, frame = vc.read()
+    frame = run_yolo_frame(frame,net,loaded_model)
+    key = cv2.waitKey(20)
+    if key == 27: # exit on ESC
+        break
+
+vc.release()
+cv2.destroyWindow("preview")

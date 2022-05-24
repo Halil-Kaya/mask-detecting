@@ -8,7 +8,14 @@ import tensorflow as tf
 from tensorflow import keras
 import os
 
-CONFIDENCE_THRESHOLD = 0.4
+vc = cv2.VideoCapture(0)
+if vc.isOpened(): # try to get the first frame
+    rval, frame = vc.read()
+else:
+    rval = False
+
+
+CONFIDENCE_THRESHOLD = 0.3
 NMS_THRESHOLD = 0.4
 
 loaded_model = keras.models.load_model("yolo/iv3_mask-model.h5")
@@ -89,20 +96,24 @@ def procVideo():
         out.release()
         return "OK"
 
-def gen(video):
+def gen(vc):
     while True:
-        success, image = video.read()
+        rval, frame = vc.read()
+        print(frame)
         #todo: put the img to ml model
-
-        ret, jpeg = cv2.imencode('.jpg', image)
+        #frame = run_yolo_frame(frame,net,loaded_model)
+        key = cv2.waitKey(20)
+        if key == 27: # exit on ESC
+            break
+        ret, jpeg = cv2.imencode('.jpg', frame)
         frame = jpeg.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 @app.route('/video_feed')
 def video_feed():
-    global video
-    return Response(gen(video),
+    global vc
+    return Response(gen(vc),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def convertVideoToBase64(video):
