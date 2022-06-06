@@ -5,7 +5,7 @@ from tensorflow import keras
 import os
 import time
 
-CONFIDENCE_THRESHOLD = 0.4
+CONFIDENCE_THRESHOLD = 0.6
 NMS_THRESHOLD = 0.4
 
 loaded_model = keras.models.load_model("yolo/iv3_mask-model.h5")

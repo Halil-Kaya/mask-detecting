@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 import os
+from flask_socketio import SocketIO, send, emit
 
 vc = cv2.VideoCapture(0)
 if vc.isOpened(): # try to get the first frame
@@ -96,25 +97,14 @@ def procVideo():
         out.release()
         return "OK"
 
-def gen(vc):
-    while True:
-        rval, frame = vc.read()
-        print(frame)
-        #todo: put the img to ml model
-        #frame = run_yolo_frame(frame,net,loaded_model)
-        key = cv2.waitKey(20)
-        if key == 27: # exit on ESC
-            break
-        ret, jpeg = cv2.imencode('.jpg', frame)
-        frame = jpeg.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 @app.route('/video_feed')
 def video_feed():
-    global vc
-    return Response(gen(vc),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    if(request.method == 'GET'):
+            return render_template('camera-page.html',result = '')
+
+
+
 
 def convertVideoToBase64(video):
     encoded_string = base64.b64encode(video.read())

@@ -12,4 +12,5 @@ RUN pip install --upgrade pip
 RUN pip install opencv-python
 RUN pip install -r requirements.txt
 RUN pip install Pillow
+RUN python3 -m pip install flask_socketio
 CMD ["python3","app.py"]
