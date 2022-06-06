@@ -8,18 +8,13 @@ import tensorflow as tf
 from tensorflow import keras
 import os
 from flask_socketio import SocketIO, send, emit
-
-vc = cv2.VideoCapture(0)
-if vc.isOpened(): # try to get the first frame
-    rval, frame = vc.read()
-else:
-    rval = False
+from io import StringIO
 
 
 CONFIDENCE_THRESHOLD = 0.3
 NMS_THRESHOLD = 0.4
 
-loaded_model = keras.models.load_model("yolo/iv3_mask-model.h5")
+loaded_model = keras.models.load_model("iv3_model_1.1.h5")
 mask_types = ["un-mask","mask","improper-mask"]
 model_weights = "yolo/yolov4-obj_last.weights"
 model_config = "yolo/yolov4-obj.cfg"
@@ -30,6 +25,9 @@ app = Flask(__name__,
             static_url_path='', 
             static_folder='web/static',
             template_folder='web/templates')
+
+socketio = SocketIO(app)
+
 
 @app.route('/',methods = ['GET','POST'])
 def index():
@@ -104,7 +102,15 @@ def video_feed():
             return render_template('camera-page.html',result = '')
 
 
-
+@socketio.on('image')
+def image(data_image):
+    orginalImage = convertBase64ToImage(data_image)
+    orginalImage = np.array(orginalImage)
+    img = run_yolo_frame(orginalImage,net,loaded_model)
+    img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+    retval, buffer = cv2.imencode('.jpg', img)
+    jpg_as_text = base64.b64encode(buffer)
+    emit('response_back', jpg_as_text)
 
 def convertVideoToBase64(video):
     encoded_string = base64.b64encode(video.read())
