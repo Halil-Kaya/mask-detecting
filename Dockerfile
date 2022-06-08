@@ -9,4 +9,5 @@ RUN apt install python3-pip -y
 RUN pip install --upgrade pip
 RUN pip install opencv-python
 RUN pip install -r requirements.txt
+RUN pip install 'protobuf<=3.20.1' --force-reinstall
 CMD ["python3","app.py"]
