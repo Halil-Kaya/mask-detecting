@@ -106,6 +106,8 @@ def video_feed():
 def image(data_image):
     orginalImage = convertBase64ToImage(data_image)
     orginalImage = np.array(orginalImage)
+    orginalImage = cv2.cvtColor(orginalImage,cv2.COLOR_BGR2RGB)
+    orginalImage = cv2.cvtColor(orginalImage,cv2.COLOR_BGR2RGB)
     img = run_yolo_frame(orginalImage,net,loaded_model)
     img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
     retval, buffer = cv2.imencode('.jpg', img)
@@ -123,7 +125,7 @@ def convertBase64ToImage(base64Code):
 
 def run_yolo_frame(img,net,mask_model):
     height, width, channels = img.shape
-    print("height :",height)
+    #print("height :",height)
     # blob from Image returns the input image after doing mean substraction, normalizing, and channels wrapping
     blob = cv2.dnn.blobFromImage(img, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
     # blob_result(blob,img)
@@ -144,8 +146,8 @@ def run_yolo_frame(img,net,mask_model):
             confidence = scores[class_id]
 
             if confidence > CONFIDENCE_THRESHOLD:
-                print("%%%%")
-                print(confidence)
+                #print("%%%%")
+                #print(confidence)
                 center_x = int(detection[0] * width)
                 center_y = int(detection[1] * height)
                 w = int(detection[2] * width)
@@ -170,7 +172,7 @@ def run_yolo_frame(img,net,mask_model):
 
             label = str(mask_types[class_ids[i]])
             percent = confidences[i]*100
-            print(percent)
+            #print(percent)
             confidence = str(round(percent,2))
             crop_img = img[y:y + h, x:x + w]
 
@@ -179,14 +181,14 @@ def run_yolo_frame(img,net,mask_model):
                 mask_model_input = np.expand_dims(mask_model_input, axis=0)
 
                 result = mask_model.predict(mask_model_input)
-                print(result)
+                #print(result)
                 chosen = np.argmax(result)
                 color = colors[chosen]
                 cv2.rectangle(img, (x, y), (x + w, y + h), color, 4)
                 mask_confidence = str(round(result[0][chosen],3))
                 class_name = mask_types[np.argmax(result)]
                 label = str(class_name)
-                print("LABEL : "+label)
+                #print("LABEL : "+label)
                 #label = "face %"
                 cv2.putText(img, label + " " + mask_confidence, (x, y-5),
                              font, fontScale=1, color=(255, 255, 255),

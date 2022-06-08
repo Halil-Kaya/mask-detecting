@@ -9,14 +9,15 @@
     <script src="https://docs.opencv.org/3.4.0/opencv.js"></script>
 </head>
 <body>
-    <div id="container">
-        <video width="320" height="320" autoplay="true" id="video">
-        </video>
-        </div>
+    <div id="container" style="display: flex;align-items: center;justify-content: center;">
+        <video style="display:none" width="256" height="256" autoplay="true" id="video"></video>
+        <img id="output" src="" width="500" height="500"></img>
         <canvas id="canvas" style="overflow:auto"></canvas>
-    <script>
+    </div>
+<script>
 
         var video = document.querySelector("#video");
+        const ouptup = document.getElementById("output")
 
         if (navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: true })
@@ -31,9 +32,10 @@
         function capture() {
             var canvas = document.getElementById('canvas');     
             var video = document.getElementById('video');
-            canvas.width = 320;
-            canvas.height = 320;
-            canvas.getContext('2d').drawImage(video, 0, 0, 320,320);  
+            canvas.width = 256;
+            canvas.height = 256;
+            canvas.getContext('2d').drawImage(video, 0, 0, 256,256);  
+            canvas.style.display = "none";
             return canvas.toDataURL("image/jpg");
         }
 
@@ -45,13 +47,12 @@
         const FPS = 11;
         setInterval(() => {
             let image = capture()
-            console.log(image)
             socket.emit('image', image);
-        }, 100000/FPS);
+        }, 10000/FPS);
     
         socket.on('response_back', function(image){
             var binaryString = String.fromCharCode.apply(null, new Uint8Array(image));
-            canvas.src = "data:image/jpg;base64," + binaryString;
+            ouptup.src = "data:image/jpg;base64," + binaryString;
         });
 
     </script>
