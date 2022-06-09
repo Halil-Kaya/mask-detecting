@@ -18,7 +18,7 @@
 .bbox{
 margin-left: 10%;
 margin-right: 10%;
-background-color: #eeeeee;
+background-color: rgb(66, 66, 66)
 
 }
 body {
@@ -28,11 +28,11 @@ border-radius: 0px;
 
 border: 5px solid #1FB264;
 height: 100%;
-background-color: #eeeeee;
+background-color: rgb(66, 66, 66)
 
 }
 .file-upload {
-background-color: #ffffff;
+background-color: rgb(66, 66, 66);
 width: 600px;
 margin: 0 auto;
 padding: 20px;
@@ -79,6 +79,8 @@ transition: all .2s ease;
 .file-upload-preview {
 display: none;
 text-align: center;
+border-radius: 5px;;
+border: 3px solid #1FB264;
 }
 .file-upload-input {
 position: absolute;
@@ -125,6 +127,7 @@ color: #222;
 .remove-image {
 width: 200px;
 margin: 0;
+margin-top: 1%;
 color: #fff;
 background: #cd4535;
 border: none;
