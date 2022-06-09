@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>DERİN ÖĞRENME İLE MASKE TESPİTİ</title>
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js" integrity="sha384-7EyYLQZgWBi67fBtVxw60/OWl1kjsfrPFcaU0pp0nAh+i8FD068QogUvg85Ewy1k" crossorigin="anonymous"></script>
     <script src="https://docs.opencv.org/3.4.0/opencv.js"></script>
 </head>
-<body>
-    <div id="container" style="display: flex;align-items: center;justify-content: center;">
-        <video style="display:none" width="256" height="256" autoplay="true" id="video"></video>
-        <img id="output" src="" width="500" height="500"></img>
+<body style="background: rgb(66, 66, 66);">
+    <h1 style=" text-align:center; color: #0ba151; font-size: 2em;"> WEBCAM MASKE TEPİTİ </h1>
+    <div id="container" style=" margin-top: 2%; display: flex;align-items: center;justify-content: center;  padding: 10px 10px 10px 10px">
+        <video style="display:none" width="256" height="256"  autoplay="true" id="video"></video>
+        <img style="border: 3px solid #0ba151; border-radius: 5px;" id="output" src="" width="500" height="500"></img>
         <canvas id="canvas" style="overflow:auto"></canvas>
     </div>
 <script>
@@ -44,7 +45,7 @@
             console.log("Connected...!", socket.connected)
         });
         
-        const FPS = 11;
+        const FPS = 10;
         setInterval(() => {
             let image = capture()
             socket.emit('image', image);
