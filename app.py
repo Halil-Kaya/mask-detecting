@@ -11,10 +11,10 @@ from flask_socketio import SocketIO, send, emit
 from io import StringIO
 
 
-CONFIDENCE_THRESHOLD = 0.3
+CONFIDENCE_THRESHOLD = 0.4
 NMS_THRESHOLD = 0.4
 
-loaded_model = keras.models.load_model("iv3_model_1.1.h5")
+loaded_model = keras.models.load_model("iv3_mask-model.h5")
 mask_types = ["un-mask","mask","improper-mask"]
 model_weights = "yolo/yolov4-obj_last.weights"
 model_config = "yolo/yolov4-obj.cfg"
@@ -185,12 +185,13 @@ def run_yolo_frame(img,net,mask_model):
                 chosen = np.argmax(result)
                 color = colors[chosen]
                 cv2.rectangle(img, (x, y), (x + w, y + h), color, 4)
-                mask_confidence = str(round(result[0][chosen],3))
-                class_name = mask_types[np.argmax(result)]
-                label = str(class_name)
-                #print("LABEL : "+label)
-                #label = "face %"
-                cv2.putText(img, label + " " + mask_confidence, (x, y-5),
+                if result[0][chosen] > CONFIDENCE_THRESHOLD:
+                    mask_confidence = str(round(result[0][chosen],2))
+                    class_name = mask_types[np.argmax(result)]
+                    label = str(class_name)
+                    #print("LABEL : "+label)
+                    #label = "face %"
+                    cv2.putText(img, label + " " + mask_confidence, (x, y-5),
                              font, fontScale=1, color=(255, 255, 255),
                              thickness=2, lineType=cv2.LINE_AA)
 
